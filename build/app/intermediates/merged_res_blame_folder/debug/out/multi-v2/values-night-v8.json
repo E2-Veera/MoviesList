@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "/home/devmachine/Desktop/Search/search/build/app/intermediates/incremental/mergeDebugResources/merged.dir/values-night-v8/values-night-v8.xml",
+            "outputFile": "/home/devmachine/Desktop/taskkkk/MoviesList/build/app/intermediates/incremental/mergeDebugResources/merged.dir/values-night-v8/values-night-v8.xml",
             "map": [
                 {
-                    "source": "/home/devmachine/Desktop/Search/search/android/app/src/main/res/values-night/styles.xml",
+                    "source": "/home/devmachine/Desktop/taskkkk/MoviesList/android/app/src/main/res/values-night/styles.xml",
                     "from": {
                         "startLines": "3,14",
                         "startColumns": "4,4",
