@@ -3,6 +3,8 @@ import 'package:search/models/movies.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' show json, jsonDecode;
 
+import 'package:search/screens/detail.dart';
+
 class HomePageMovies extends StatefulWidget {
   const HomePageMovies({Key? key}) : super(key: key);
 
@@ -14,19 +16,47 @@ class _HomePageMoviesState extends State<HomePageMovies> {
   TextEditingController searchController = TextEditingController();
 
   List<Movies> mymovies = [];
-  bool isFetchdata = false;
+  List<Movies> _foundUsers = [];
+
   @override
   void initState() {
     getallMovieDetailsFromServer();
+    refreshtheInitialUI();
     super.initState();
   }
 
-  // void searchFunction() {
-  //   if (mymovies.contains(searchController.text)) {
-  //     print('Search found');
-  //   } else {
-  //     print('Search Not found');
+  void refreshtheInitialUI() {
+    setState(() {
+      _foundUsers = mymovies;
+    });
+  }
+
+  void _runFilter(String enteredKeyword) {
+    List<Movies> results = [];
+    if (enteredKeyword.isEmpty) {
+      results = mymovies;
+      print('the result : ${results}');
+    } else {
+      results = mymovies
+          .where((user) => user.movieName
+              .toLowerCase()
+              .contains(enteredKeyword.toLowerCase()))
+          .toList();
+    }
+
+    setState(() {
+      _foundUsers = results;
+    });
+  }
+
+  // Future<dynamic> addMovieNameIntoList(movieList) async {
+  //   movieNameList = [];
+  //   for (int j = 0; j < movieList.length; j++) {
+  //     var movieName = movieList[j]['title'];
+  //     movieNameList.add(movieName);
+  //     // print('name list : ${movieNameList}');
   //   }
+  //   return movieNameList;
   // }
 
   Future<dynamic> processMovieInfos(
@@ -42,8 +72,8 @@ class _HomePageMoviesState extends State<HomePageMovies> {
       movie.imageLink = movieList[i]['image'];
 
       mymovies.add(movie);
-
-      isFetchdata = true;
+      _foundUsers.clear();
+      _foundUsers.addAll(mymovies);
     }
     print('length : ${mymovies.length}');
 
@@ -53,7 +83,6 @@ class _HomePageMoviesState extends State<HomePageMovies> {
   void getallMovieDetailsFromServer() async {
     try {
       var url = 'https://imdb-api.com/en/API/Search/k_jdss7eo7/{queary}';
-
       var response;
       var responseDetails;
       response = await http.get(Uri.parse(url));
@@ -74,20 +103,13 @@ class _HomePageMoviesState extends State<HomePageMovies> {
   Widget build(BuildContext context) {
     Widget inputsearch = TextField(
       onChanged: ((value) {
-        if (mymovies.contains(value)) {
-          print('Search found');
-        } else {
-          print('Not found movies');
-        }
+        _runFilter(value);
       }),
       controller: searchController,
       decoration: const InputDecoration(
         labelText: "Search",
         labelStyle: TextStyle(color: Colors.black),
-        prefixIcon: Icon(
-          Icons.search,
-          color: Colors.black,
-        ),
+        prefixIcon: Icon(Icons.search, color: Colors.black),
       ),
     );
     return Scaffold(
@@ -121,30 +143,61 @@ class _HomePageMoviesState extends State<HomePageMovies> {
                       ),
                     )
                   : ListView.builder(
-                      itemCount: mymovies.length,
+                      itemCount: _foundUsers.length,
                       itemBuilder: (context, index) {
-                        return ListTile(
-                          title: Column(
-                            children: [
-                              Container(
-                                  height: 300,
-                                  width: double.infinity,
-                                  child:
-                                      Image.network(mymovies[index].imageLink)),
-                              const SizedBox(
-                                height: 30,
+                        return Padding(
+                          padding: const EdgeInsets.all(5.0),
+                          child: Card(
+                            elevation: 5,
+                            child: ListTile(
+                              title: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    alignment: Alignment.topLeft,
+                                    height: 150,
+                                    width: 130,
+                                    child: Image.network(
+                                      _foundUsers[index].imageLink,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 2,
+                                  ),
+                                  Container(
+                                    width: 200,
+                                    alignment: Alignment.topLeft,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _foundUsers[index].movieName,
+                                          style: const TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        const SizedBox(
+                                          height: 9,
+                                        ),
+                                        Text(_foundUsers[index].movieYear),
+                                      ],
+                                    ),
+                                  )
+                                ],
                               ),
-                              Text(
-                                mymovies[index].movieName,
-                                style: const TextStyle(
-                                    fontSize: 25, fontWeight: FontWeight.bold),
-                              ),
-                            ],
+                              onTap: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (BuildContext context) => Details(
+                                          index: index,
+                                          mymovies: _foundUsers,
+                                        )));
+                              },
+                            ),
                           ),
-                          subtitle: Text(mymovies[index].movieYear),
-                          onTap: () {
-                            Navigator.pushNamed(context, '/details');
-                          },
                         );
                       }),
             ),
@@ -154,4 +207,3 @@ class _HomePageMoviesState extends State<HomePageMovies> {
     );
   }
 }
-
